@@ -4,14 +4,7 @@ import { prisma } from "~/utils/db.server";
 import { requireUserId } from "~/utils/auth.server";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "~/components/ui/table";
+
 import {
     Sheet,
     SheetContent,
@@ -42,19 +35,11 @@ import {
     DropdownMenuTrigger,
     DropdownMenuSeparator,
 } from "~/components/ui/dropdown-menu";
-import {
-    type ColumnDef,
-    flexRender,
-    getCoreRowModel,
-    useReactTable,
-    getPaginationRowModel,
-    getFilteredRowModel,
-    type ColumnFiltersState,
-} from "@tanstack/react-table";
+import { type ColumnDef } from "@tanstack/react-table";
 import { useState, useEffect } from "react";
 import bcrypt from "bcryptjs";
 import { toast } from "sonner";
-import { DataTablePagination } from "~/components/data-table-pagination";
+import { DataTable } from "~/components/data-table";
 
 export async function loader({ request }: LoaderFunctionArgs) {
     await requireUserId(request);
@@ -69,6 +54,22 @@ export async function action({ request }: ActionFunctionArgs) {
     await requireUserId(request);
     const formData = await request.formData();
     const intent = formData.get("intent");
+
+    if (intent === "bulk-delete") {
+        const idsString = formData.get("ids") as string;
+        try {
+            const ids = JSON.parse(idsString);
+            if (Array.isArray(ids) && ids.length > 0) {
+                await prisma.user.deleteMany({
+                    where: { id: { in: ids } }
+                });
+                return { success: true, message: `${ids.length} users deleted successfully` };
+            }
+        } catch (e) {
+            return { error: "Invalid bulk delete request" };
+        }
+        return { error: "No items selected" };
+    }
 
     if (intent === "create" || intent === "update") {
         const email = formData.get("email") as string;
@@ -121,7 +122,6 @@ export default function Users() {
     const submit = useSubmit();
     const isSubmitting = navigation.state === "submitting";
 
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [isSheetOpen, setIsSheetOpen] = useState(false);
     const [sheetMode, setSheetMode] = useState<"create" | "edit" | "duplicate">("create");
     const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -215,18 +215,6 @@ export default function Users() {
         },
     ];
 
-    const table = useReactTable({
-        data: users,
-        columns,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        onColumnFiltersChange: setColumnFilters,
-        getFilteredRowModel: getFilteredRowModel(),
-        state: {
-            columnFilters,
-        },
-    });
-
     const getDefaultEmail = () => {
         if (sheetMode === "create") return "";
         if (!selectedUser) return "";
@@ -235,72 +223,11 @@ export default function Users() {
 
     return (
         <div className="w-full">
-            <div className="flex items-center py-4 justify-between">
-                <Input
-                    placeholder="Filter emails..."
-                    value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("email")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm"
-                />
+            <DataTable columns={columns} data={users} filterColumn="email">
                 <Button onClick={openCreate}>
                     <Plus className="mr-2 h-4 w-4" /> Add User
                 </Button>
-            </div>
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    );
-                                })}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center"
-                                >
-                                    No results.
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
-            <div className="py-4">
-                <DataTablePagination table={table} />
-            </div>
+            </DataTable>
 
             {/* Add/Edit/Duplicate Sheet */}
             <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
@@ -365,6 +292,6 @@ export default function Users() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+        </div >
     );
 }
