@@ -1,87 +1,120 @@
-# Welcome to React Router!
+# Remix User Management
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A modern, full-stack web application built with **React Router v7 (Remix)**, **Prisma**, **SQLite**, and **Shadcn UI**. This project features a robust authentication system, comprehensive user and customer management modules, and a polished, responsive user interface.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## 🚀 Features
 
-## Features
+### Authentication
+- **Secure Login & Registration**: Built with `bcryptjs` for password hashing and secure cookie-based sessions.
+- **Modern UI**: Split-layout design for login and registration pages using Shadcn blocks.
+- **Protected Routes**: Authenticated layout ensuring only logged-in users can access the dashboard.
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+### User Management
+- **Data Table**: Advanced table with server-side pagination, filtering (by email), and sorting.
+- **Drawer-based Actions**: Add, Edit, and Duplicate users directly from a side drawer (Sheet) without leaving the page.
+- **Validation**: Enforces unique emails and required fields.
+- **Security**: Password hashing and secure updates.
 
-## Getting Started
+### Customer Management
+- **CRUD Operations**: Create, Read, Update, and Delete customers.
+- **Search & Filter**: Real-time filtering by customer name.
+- **Drawer Workflow**: Seamless editing and duplication of customer records.
+- **Seeding**: Includes a script to generate 100 random customers for testing.
+
+### UI/UX
+- **Dashboard Layout**: Responsive sidebar navigation with breadcrumbs.
+- **Feedback**: Toast notifications (`sonner`) for success and error messages.
+- **Confirmation**: Safety checks (Alert Dialogs) before deleting records.
+- **Design System**: Built with Tailwind CSS and Shadcn UI for a consistent, premium look.
+
+## 🛠️ Tech Stack
+
+- **Framework**: [React Router v7](https://reactrouter.com/) (formerly Remix)
+- **Database**: [SQLite](https://www.sqlite.org/)
+- **ORM**: [Prisma](https://www.prisma.io/)
+- **UI Library**: [Shadcn UI](https://ui.shadcn.com/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Icons**: [Lucide React](https://lucide.dev/)
+- **Table**: [TanStack Table](https://tanstack.com/table/v8)
+- **Forms**: React Router Form & Actions
+
+## 📂 Project Structure
+
+```
+├── app/
+│   ├── components/         # Shadcn UI and custom components
+│   │   ├── ui/            # Primitive UI components (Button, Input, Sheet, etc.)
+│   │   └── app-sidebar.tsx # Sidebar navigation component
+│   ├── routes/             # Application routes
+│   │   ├── _auth.tsx      # Authenticated layout (Sidebar, Toaster)
+│   │   ├── _index.tsx     # Login page (Root)
+│   │   ├── register.tsx   # Registration page
+│   │   ├── users._index.tsx # User management (Table + Drawer)
+│   │   └── customers._index.tsx # Customer management (Table + Drawer)
+│   ├── utils/              # Server-side utilities
+│   │   ├── auth.server.ts # Authentication logic
+│   │   ├── db.server.ts   # Prisma client singleton
+│   │   └── session.server.ts # Session storage configuration
+│   └── root.tsx            # Root layout
+├── prisma/
+│   ├── schema.prisma       # Database schema
+│   └── seed.ts             # Database seeding script
+├── public/                 # Static assets
+└── package.json            # Dependencies and scripts
+```
+
+## ⚡ Getting Started
+
+### Prerequisites
+- Node.js (v20+ recommended)
+- pnpm (recommended) or npm
 
 ### Installation
 
-Install the dependencies:
+1.  **Clone the repository** (if applicable) or navigate to the project directory.
 
-```bash
-npm install
-```
+2.  **Install dependencies**:
+    ```bash
+    pnpm install
+    ```
 
-### Development
+3.  **Setup Database**:
+    Initialize the SQLite database and run migrations.
+    ```bash
+    npx prisma migrate dev
+    ```
 
-Start the development server with HMR:
+4.  **Seed Database** (Optional):
+    Populate the database with 100 random customers.
+    ```bash
+    npx prisma db seed
+    ```
 
-```bash
-npm run dev
-```
+5.  **Run Development Server**:
+    ```bash
+    pnpm dev
+    ```
+    Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-Your application will be available at `http://localhost:5173`.
+## 📖 Usage Guide
 
-## Building for Production
+1.  **Login/Register**:
+    - The app starts at the Login page.
+    - Create a new account via "Sign up".
+    - Log in to access the dashboard.
 
-Create a production build:
+2.  **Dashboard**:
+    - Use the **Sidebar** to navigate between "User Management" and "Customer Management".
 
-```bash
-npm run build
-```
+3.  **Managing Records**:
+    - **Add**: Click the "Add" button to open the form drawer.
+    - **Edit**: Click the "..." menu on a row and select "Edit".
+    - **Duplicate**: Select "Duplicate" to create a copy with "CLONE -" prefix.
+    - **Delete**: Select "Delete" and confirm the action in the dialog.
 
-## Deployment
+## 📜 Scripts
 
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+- `pnpm dev`: Start the development server.
+- `pnpm build`: Build the application for production.
+- `pnpm start`: Start the production server.
+- `npx prisma studio`: Open the Prisma Studio GUI to view/edit database data.
