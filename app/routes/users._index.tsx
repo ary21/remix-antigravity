@@ -54,6 +54,7 @@ import {
 import { useState, useEffect } from "react";
 import bcrypt from "bcryptjs";
 import { toast } from "sonner";
+import { DataTablePagination } from "~/components/data-table-pagination";
 
 export async function loader({ request }: LoaderFunctionArgs) {
     await requireUserId(request);
@@ -297,23 +298,8 @@ export default function Users() {
                     </TableBody>
                 </Table>
             </div>
-            <div className="flex items-center justify-end space-x-2 py-4">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    Previous
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                >
-                    Next
-                </Button>
+            <div className="py-4">
+                <DataTablePagination table={table} />
             </div>
 
             {/* Add/Edit/Duplicate Sheet */}
