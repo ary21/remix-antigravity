@@ -112,6 +112,55 @@ A modern, full-stack web application built with **React Router v7 (Remix)**, **P
     - **Duplicate**: Select "Duplicate" to create a copy with "CLONE -" prefix.
     - **Delete**: Select "Delete" and confirm the action in the dialog.
 
+## 🧩 How to Create a New Module
+
+Follow these steps to add a new module (e.g., "Products") to the application.
+
+### 1. Database Setup
+1.  Open `prisma/schema.prisma`.
+2.  Add your new model:
+    ```prisma
+    model Product {
+      id        String   @id @default(uuid())
+      name      String
+      price     Decimal
+      createdAt DateTime @default(now())
+      updatedAt DateTime @updatedAt
+    }
+    ```
+3.  Run the migration to update your database:
+    ```bash
+    npx prisma migrate dev --name add_product_model
+    ```
+
+### 2. Create the Route
+1.  Create a new file in `app/routes/` (e.g., `products._index.tsx`).
+2.  **Copy & Paste**: You can copy the content of `app/routes/customers._index.tsx` as a starting point.
+3.  **Update Loader**:
+    -   Change the Prisma query to fetch your new model (e.g., `prisma.product.findMany()`).
+4.  **Update Action**:
+    -   Update the `intent` handling for "create", "update", and "delete" to work with your new model fields.
+5.  **Update UI**:
+    -   Modify the `columns` definition for the `DataTable`.
+    -   Update the `Sheet` form fields to match your model.
+
+### 3. Add to Sidebar
+1.  Open `app/components/app-sidebar.tsx`.
+2.  Import an icon from `lucide-react`.
+3.  Add a new item to the `items` array:
+    ```tsx
+    {
+        title: "Products",
+        url: "/products",
+        icon: Package, // Imported from lucide-react
+    },
+    ```
+
+### 4. Test
+1.  Run `pnpm dev`.
+2.  Navigate to your new route (e.g., `/products`) via the sidebar.
+3.  Test creating, editing, and deleting items.
+
 ## 📜 Scripts
 
 - `pnpm dev`: Start the development server.
