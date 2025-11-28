@@ -14,22 +14,12 @@ import {
 import { Link, useLocation } from "react-router";
 import { Users, User, LogOut, Home } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
+import { sideNavItems } from "~/utils/constans";
 
 export function AppSidebar() {
     const location = useLocation();
 
-    const items = [
-        {
-            title: "User Management",
-            url: "/users",
-            icon: Users,
-        },
-        {
-            title: "Customer Management",
-            url: "/customers",
-            icon: User,
-        },
-    ];
+    const items = sideNavItems || [];
 
     return (
         <Sidebar>
