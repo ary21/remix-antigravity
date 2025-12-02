@@ -1,9 +1,21 @@
 import { redirect } from "react-router";
+import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db.server";
 import { getSession, commitSession, destroySession, sessionStorage } from "./session.server";
 
-export async function register({ email, password }: { email: string; password: string }) {
+export const RegisterSchema = z.object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+});
+
+export const LoginSchema = z.object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(1, "Password is required"),
+});
+
+export async function register(input: z.infer<typeof RegisterSchema>) {
+    const { email, password } = RegisterSchema.parse(input);
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
         return { error: "User already exists with that email" };
@@ -16,7 +28,8 @@ export async function register({ email, password }: { email: string; password: s
     return { user };
 }
 
-export async function login({ email, password }: { email: string; password: string }) {
+export async function login(input: z.infer<typeof LoginSchema>) {
+    const { email, password } = LoginSchema.parse(input);
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) return null;
 

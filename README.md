@@ -147,7 +147,7 @@ Follow these steps to add a new module (e.g., "Products") to the application.
 ### 3. Add to Sidebar
 1.  Open `app/components/app-sidebar.tsx`.
 2.  Import an icon from `lucide-react`.
-3.  Add a new item to the `items` array:
+3.  Add a new module item to the `sideNavItems` array in `app/utils/constans.ts`:
     ```tsx
     {
         title: "Products",

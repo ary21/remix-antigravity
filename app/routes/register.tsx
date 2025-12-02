@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs, MetaFunction } from "react-router";
 import { Form, Link, useActionData, useNavigation } from "react-router";
-import { register, createUserSession } from "~/utils/auth.server";
+import { register, createUserSession, RegisterSchema } from "~/utils/auth.server";
+import { isRateLimited } from "~/utils/rate-limit.server";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -10,32 +11,30 @@ export const meta: MetaFunction = () => {
 };
 
 export async function action({ request }: ActionFunctionArgs) {
+    const ip = request.headers.get("X-Forwarded-For") || "unknown";
+    if (isRateLimited(ip, 5, 60 * 1000)) {
+        return { error: "Too many registration attempts. Please try again later." };
+    }
+
     const formData = await request.formData();
-    const email = formData.get("email");
-    const password = formData.get("password");
+    const validationResult = RegisterSchema.safeParse(Object.fromEntries(formData));
 
-    if (typeof email !== "string" || typeof password !== "string") {
-        return { error: "Invalid form submission" };
+    if (!validationResult.success) {
+        return { error: validationResult.error.issues[0].message };
     }
 
-    if (!email.includes("@")) {
-        return { error: "Invalid email address" };
+    const { email, password } = validationResult.data;
+
+    const registerResult = await register({ email, password });
+    if (registerResult.error) {
+        return { error: registerResult.error };
     }
 
-    if (password.length < 6) {
-        return { error: "Password must be at least 6 characters" };
-    }
-
-    const result = await register({ email, password });
-    if (result.error) {
-        return { error: result.error };
-    }
-
-    if (!result.user) {
+    if (!registerResult.user) {
         return { error: "Something went wrong" };
     }
 
-    return createUserSession(result.user.id, "/users");
+    return createUserSession(registerResult.user.id, "/users");
 }
 
 export default function Register() {

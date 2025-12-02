@@ -1,6 +1,7 @@
 import type { ActionFunctionArgs, MetaFunction } from "react-router";
 import { Form, Link, useActionData, useNavigation } from "react-router";
-import { login, createUserSession } from "~/utils/auth.server";
+import { login, createUserSession, LoginSchema } from "~/utils/auth.server";
+import { isRateLimited } from "~/utils/rate-limit.server";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -11,14 +12,21 @@ export const meta: MetaFunction = () => {
 };
 
 export async function action({ request }: ActionFunctionArgs) {
+    const ip = request.headers.get("X-Forwarded-For") || "unknown";
+    if (isRateLimited(ip, 5, 60 * 1000)) {
+        return { error: "Too many login attempts. Please try again later." };
+    }
+
     const formData = await request.formData();
-    const email = formData.get("email");
-    const password = formData.get("password");
     const redirectTo = (formData.get("redirectTo") as string) || "/";
 
-    if (typeof email !== "string" || typeof password !== "string") {
-        return { error: "Invalid form submission" };
+    const result = LoginSchema.safeParse(Object.fromEntries(formData));
+
+    if (!result.success) {
+        return { error: result.error.issues[0].message };
     }
+
+    const { email, password } = result.data;
 
     const user = await login({ email, password });
     if (!user) {
